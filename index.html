@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AfrikBank Vault Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center p-4">
+
+    <div id="app" class="w-full max-w-md bg-gray-800 p-8 rounded-xl shadow-2xl border border-gray-700">
+        <h1 class="text-2xl font-bold mb-6 text-center text-blue-400">AFRIKBANK VAULT</h1>
+        
+        <div id="login-form">
+            <input type="text" id="access_code" placeholder="Enter Access Code" class="w-full p-3 mb-4 bg-gray-900 border border-gray-600 rounded">
+            <button onclick="login()" class="w-full bg-blue-600 hover:bg-blue-700 p-3 rounded font-bold">ACCESS PORTAL</button>
+        </div>
+
+        <div id="dashboard" class="hidden">
+            <div id="user-info" class="mb-6 border-b border-gray-700 pb-4"></div>
+            <div id="asset-display" class="space-y-2"></div>
+            <div id="admin-panel" class="hidden mt-8 pt-6 border-t border-gray-700">
+                <h3 class="text-sm font-bold text-gray-400 uppercase mb-2">Admin Operations</h3>
+                <button class="w-full bg-red-600 p-2 rounded text-sm">Force Asset Refresh</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const supabase = supabase.createClient('https://xmlizdiopgqpfbkhyeef.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtbGl6ZGlvcGdxcGZia2h5ZWVmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3OTk5NjgsImV4cCI6MjA5NjM3NTk2OH0.LB1KHcRWuBzA_KpOTEsxG4yR2930d2Vsd7HQTFWjqH0');
+
+        async function login() {
+            const code = document.getElementById('access_code').value;
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*, assets(*)')
+                .eq('access_code', code)
+                .single();
+
+            if (error) { alert('Access Denied'); return; }
+
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            
+            document.getElementById('user-info').innerHTML = `
+                <h2 class="text-xl">${data.name}</h2>
+                <p class="text-blue-400 text-sm">${data.role}</p>
+            `;
+
+            document.getElementById('asset-display').innerHTML = `
+                <p>Liquid: $${data.assets.liquid_asset}</p>
+                <p>Diamonds: ${data.assets.blue_diamonds}</p>
+                <p>Portfolio: ${data.assets.other_portfolio}</p>
+            `;
+
+            if (data.role.includes('ADMIN')) {
+                document.getElementById('admin-panel').classList.remove('hidden');
+            }
+        }
+    </script>
+</body>
+</html>
